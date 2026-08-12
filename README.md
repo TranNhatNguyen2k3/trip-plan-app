@@ -25,9 +25,18 @@ cp .env.example .env
 6. Run the app:
 
 ```bash
+make setup   # once: creates .env from .env.example
+make run
+```
+
+Or manually:
+
+```bash
 flutter pub get
 flutter run
 ```
+
+See `make help` for migrate, seed, test, and other targets.
 
 `--dart-define` still works and overrides `.env` when set.
 

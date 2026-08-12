@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
+import 'core/network/api_log_config.dart';
+import 'core/network/logging_http_client.dart';
+import 'core/network/supabase_api_logging.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,10 +31,19 @@ Future<void> main() async {
       ? defineKey
       : (dotenv.env['SUPABASE_ANON_KEY'] ?? 'placeholder-anon-key');
 
+  final apiLog = resolveSupabaseApiLoggingEnabled();
+  configureSupabaseApiLogging(enabled: apiLog);
+
   await Supabase.initialize(
     url: supabaseUrl,
     publishableKey: supabaseAnonKey,
+    debug: apiLog,
+    httpClient: apiLog ? LoggingHttpClient() : null,
   );
+
+  if (apiLog && kDebugMode) {
+    debugPrint('[API] Supabase API logging enabled');
+  }
 
   runApp(const ProviderScope(child: TripMateApp()));
 }
