@@ -20,6 +20,8 @@ alter table public.journal_photos enable row level security;
 -- Read: self or trip co-members; update: own profile only
 -- ---------------------------------------------------------------------------
 
+drop policy if exists "profiles_select_self_or_co_members" on public.profiles;
+
 create policy "profiles_select_self_or_co_members"
   on public.profiles
   for select
@@ -36,6 +38,8 @@ create policy "profiles_select_self_or_co_members"
     )
   );
 
+drop policy if exists "profiles_update_own" on public.profiles;
+
 create policy "profiles_update_own"
   on public.profiles
   for update
@@ -49,11 +53,18 @@ create policy "profiles_update_own"
 -- trips
 -- ---------------------------------------------------------------------------
 
+drop policy if exists "trips_select_members" on public.trips;
+
 create policy "trips_select_members"
   on public.trips
   for select
   to authenticated
-  using (public.is_trip_member(id));
+  using (
+    public.is_trip_member(id)
+    or created_by = auth.uid()
+  );
+
+drop policy if exists "trips_insert_authenticated" on public.trips;
 
 create policy "trips_insert_authenticated"
   on public.trips
@@ -61,12 +72,16 @@ create policy "trips_insert_authenticated"
   to authenticated
   with check (created_by = auth.uid());
 
+drop policy if exists "trips_update_owners" on public.trips;
+
 create policy "trips_update_owners"
   on public.trips
   for update
   to authenticated
   using (public.is_trip_owner(id))
   with check (public.is_trip_owner(id));
+
+drop policy if exists "trips_delete_owners" on public.trips;
 
 create policy "trips_delete_owners"
   on public.trips
@@ -78,11 +93,15 @@ create policy "trips_delete_owners"
 -- trip_members
 -- ---------------------------------------------------------------------------
 
+drop policy if exists "trip_members_select_members" on public.trip_members;
+
 create policy "trip_members_select_members"
   on public.trip_members
   for select
   to authenticated
   using (public.is_trip_member(trip_id));
+
+drop policy if exists "trip_members_insert_owners" on public.trip_members;
 
 create policy "trip_members_insert_owners"
   on public.trip_members
@@ -103,12 +122,16 @@ create policy "trip_members_insert_owners"
     )
   );
 
+drop policy if exists "trip_members_update_owners" on public.trip_members;
+
 create policy "trip_members_update_owners"
   on public.trip_members
   for update
   to authenticated
   using (public.is_trip_owner(trip_id))
   with check (public.is_trip_owner(trip_id));
+
+drop policy if exists "trip_members_delete_owners_or_self" on public.trip_members;
 
 create policy "trip_members_delete_owners_or_self"
   on public.trip_members
@@ -123,11 +146,15 @@ create policy "trip_members_delete_owners_or_self"
 -- trip_invitations
 -- ---------------------------------------------------------------------------
 
+drop policy if exists "trip_invitations_select_members" on public.trip_invitations;
+
 create policy "trip_invitations_select_members"
   on public.trip_invitations
   for select
   to authenticated
   using (public.is_trip_member(trip_id));
+
+drop policy if exists "trip_invitations_insert_owners" on public.trip_invitations;
 
 create policy "trip_invitations_insert_owners"
   on public.trip_invitations
@@ -138,12 +165,16 @@ create policy "trip_invitations_insert_owners"
     and invited_by = auth.uid()
   );
 
+drop policy if exists "trip_invitations_update_owners" on public.trip_invitations;
+
 create policy "trip_invitations_update_owners"
   on public.trip_invitations
   for update
   to authenticated
   using (public.is_trip_owner(trip_id))
   with check (public.is_trip_owner(trip_id));
+
+drop policy if exists "trip_invitations_delete_owners" on public.trip_invitations;
 
 create policy "trip_invitations_delete_owners"
   on public.trip_invitations
@@ -155,11 +186,15 @@ create policy "trip_invitations_delete_owners"
 -- expenses
 -- ---------------------------------------------------------------------------
 
+drop policy if exists "expenses_select_members" on public.expenses;
+
 create policy "expenses_select_members"
   on public.expenses
   for select
   to authenticated
   using (public.is_trip_member(trip_id));
+
+drop policy if exists "expenses_insert_members" on public.expenses;
 
 create policy "expenses_insert_members"
   on public.expenses
@@ -169,6 +204,8 @@ create policy "expenses_insert_members"
     public.is_trip_member(trip_id)
     and created_by = auth.uid()
   );
+
+drop policy if exists "expenses_update_own_or_owner" on public.expenses;
 
 create policy "expenses_update_own_or_owner"
   on public.expenses
@@ -183,6 +220,8 @@ create policy "expenses_update_own_or_owner"
     and (created_by = auth.uid() or public.is_trip_owner(trip_id))
   );
 
+drop policy if exists "expenses_delete_own_or_owner" on public.expenses;
+
 create policy "expenses_delete_own_or_owner"
   on public.expenses
   for delete
@@ -195,6 +234,8 @@ create policy "expenses_delete_own_or_owner"
 -- ---------------------------------------------------------------------------
 -- expense_participants
 -- ---------------------------------------------------------------------------
+
+drop policy if exists "expense_participants_select_members" on public.expense_participants;
 
 create policy "expense_participants_select_members"
   on public.expense_participants
@@ -209,6 +250,8 @@ create policy "expense_participants_select_members"
     )
   );
 
+drop policy if exists "expense_participants_insert_members" on public.expense_participants;
+
 create policy "expense_participants_insert_members"
   on public.expense_participants
   for insert
@@ -222,6 +265,8 @@ create policy "expense_participants_insert_members"
         and (e.created_by = auth.uid() or public.is_trip_owner(e.trip_id))
     )
   );
+
+drop policy if exists "expense_participants_update_own_expense_or_owner" on public.expense_participants;
 
 create policy "expense_participants_update_own_expense_or_owner"
   on public.expense_participants
@@ -246,6 +291,8 @@ create policy "expense_participants_update_own_expense_or_owner"
     )
   );
 
+drop policy if exists "expense_participants_delete_own_expense_or_owner" on public.expense_participants;
+
 create policy "expense_participants_delete_own_expense_or_owner"
   on public.expense_participants
   for delete
@@ -264,11 +311,15 @@ create policy "expense_participants_delete_own_expense_or_owner"
 -- settlements
 -- ---------------------------------------------------------------------------
 
+drop policy if exists "settlements_select_members" on public.settlements;
+
 create policy "settlements_select_members"
   on public.settlements
   for select
   to authenticated
   using (public.is_trip_member(trip_id));
+
+drop policy if exists "settlements_insert_members" on public.settlements;
 
 create policy "settlements_insert_members"
   on public.settlements
@@ -290,6 +341,8 @@ create policy "settlements_insert_members"
     )
   );
 
+drop policy if exists "settlements_update_own_or_owner" on public.settlements;
+
 create policy "settlements_update_own_or_owner"
   on public.settlements
   for update
@@ -302,6 +355,8 @@ create policy "settlements_update_own_or_owner"
     public.is_trip_member(trip_id)
     and (created_by = auth.uid() or public.is_trip_owner(trip_id))
   );
+
+drop policy if exists "settlements_delete_own_or_owner" on public.settlements;
 
 create policy "settlements_delete_own_or_owner"
   on public.settlements
@@ -316,11 +371,15 @@ create policy "settlements_delete_own_or_owner"
 -- journal_entries
 -- ---------------------------------------------------------------------------
 
+drop policy if exists "journal_entries_select_members" on public.journal_entries;
+
 create policy "journal_entries_select_members"
   on public.journal_entries
   for select
   to authenticated
   using (public.is_trip_member(trip_id));
+
+drop policy if exists "journal_entries_insert_members" on public.journal_entries;
 
 create policy "journal_entries_insert_members"
   on public.journal_entries
@@ -330,6 +389,8 @@ create policy "journal_entries_insert_members"
     public.is_trip_member(trip_id)
     and created_by = auth.uid()
   );
+
+drop policy if exists "journal_entries_update_own_or_owner" on public.journal_entries;
 
 create policy "journal_entries_update_own_or_owner"
   on public.journal_entries
@@ -344,6 +405,8 @@ create policy "journal_entries_update_own_or_owner"
     and (created_by = auth.uid() or public.is_trip_owner(trip_id))
   );
 
+drop policy if exists "journal_entries_delete_own_or_owner" on public.journal_entries;
+
 create policy "journal_entries_delete_own_or_owner"
   on public.journal_entries
   for delete
@@ -356,6 +419,8 @@ create policy "journal_entries_delete_own_or_owner"
 -- ---------------------------------------------------------------------------
 -- journal_photos
 -- ---------------------------------------------------------------------------
+
+drop policy if exists "journal_photos_select_members" on public.journal_photos;
 
 create policy "journal_photos_select_members"
   on public.journal_photos
@@ -370,6 +435,8 @@ create policy "journal_photos_select_members"
     )
   );
 
+drop policy if exists "journal_photos_insert_members" on public.journal_photos;
+
 create policy "journal_photos_insert_members"
   on public.journal_photos
   for insert
@@ -383,6 +450,8 @@ create policy "journal_photos_insert_members"
         and (je.created_by = auth.uid() or public.is_trip_owner(je.trip_id))
     )
   );
+
+drop policy if exists "journal_photos_update_own_entry_or_owner" on public.journal_photos;
 
 create policy "journal_photos_update_own_entry_or_owner"
   on public.journal_photos
@@ -406,6 +475,8 @@ create policy "journal_photos_update_own_entry_or_owner"
         and (je.created_by = auth.uid() or public.is_trip_owner(je.trip_id))
     )
   );
+
+drop policy if exists "journal_photos_delete_own_entry_or_owner" on public.journal_photos;
 
 create policy "journal_photos_delete_own_entry_or_owner"
   on public.journal_photos

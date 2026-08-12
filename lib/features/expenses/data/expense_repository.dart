@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/utils/supabase_provider.dart';
+import '../../trips/data/trip_scope.dart';
 import '../domain/expense.dart';
 
 final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
@@ -12,6 +13,7 @@ final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
 
 final expensesProvider =
     FutureProvider.autoDispose.family<List<Expense>, String>((ref, tripId) async {
+  bindTripScopeRef(ref, tripId);
   return ref.watch(expenseRepositoryProvider).listExpenses(tripId);
 });
 

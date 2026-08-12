@@ -13,6 +13,7 @@ import '../../../core/widgets/app_loading.dart';
 import '../../trips/data/trip_repository.dart';
 import '../data/journal_repository.dart';
 import '../domain/journal_entry.dart';
+import '../../../core/storage/signed_url_service.dart';
 
 class JournalDetailScreen extends ConsumerWidget {
   const JournalDetailScreen({
@@ -90,7 +91,6 @@ class JournalDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entryAsync = ref.watch(journalEntryProvider(entryId));
-    final repo = ref.watch(journalRepositoryProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -129,25 +129,11 @@ class JournalDetailScreen extends ConsumerWidget {
                         const SizedBox(width: AppSpacing.sm),
                     itemBuilder: (context, index) {
                       final photo = entry.photos[index];
-                      return FutureBuilder<String?>(
-                        future: repo.signedUrl(photo.storagePath),
-                        builder: (context, snapshot) {
-                          return GestureDetector(
-                            onTap: () => context.push(
-                              '/trips/$tripId/journal/$entryId/photos?i=$index',
-                            ),
-                            child: SizedBox(
-                              width: 280,
-                              child: AppImage(
-                                url: snapshot.data,
-                                height: 240,
-                                width: 280,
-                                heroTag: 'journal-photo-${photo.id}',
-                                memCacheWidth: 800,
-                              ),
-                            ),
-                          );
-                        },
+                      return _JournalDetailPhotoThumb(
+                        tripId: tripId,
+                        entryId: entryId,
+                        photo: photo,
+                        index: index,
                       );
                     },
                   ),
@@ -215,6 +201,53 @@ class JournalDetailScreen extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _JournalDetailPhotoThumb extends ConsumerWidget {
+  const _JournalDetailPhotoThumb({
+    required this.tripId,
+    required this.entryId,
+    required this.photo,
+    required this.index,
+  });
+
+  final String tripId;
+  final String entryId;
+  final JournalPhoto photo;
+  final int index;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final urlAsync = ref.watch(signedStorageUrlProvider(photo.storagePath));
+    return urlAsync.when(
+      loading: () => const SizedBox(
+        width: 280,
+        height: 240,
+        child: AppLoading(),
+      ),
+      error: (_, _) => SizedBox(
+        width: 280,
+        height: 240,
+        child: AppImage(url: null, height: 240, width: 280),
+      ),
+      data: (url) => GestureDetector(
+        onTap: () => context.push(
+          '/trips/$tripId/journal/$entryId/photos?i=$index',
+        ),
+        child: SizedBox(
+          width: 280,
+          child: AppImage(
+            url: url,
+            cacheKey: photo.storagePath,
+            height: 240,
+            width: 280,
+            heroTag: 'journal-photo-${photo.id}',
+            memCacheWidth: 800,
+          ),
+        ),
       ),
     );
   }

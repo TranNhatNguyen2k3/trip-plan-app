@@ -5,31 +5,40 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
+import '../../../core/storage/signed_url_service.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/supabase_provider.dart';
 import '../domain/trip.dart';
+import 'trip_scope.dart';
 
 final tripRepositoryProvider = Provider<TripRepository>((ref) {
-  return TripRepository(ref.watch(supabaseClientProvider));
+  return TripRepository(
+    ref.watch(supabaseClientProvider),
+    ref.watch(signedUrlCacheProvider),
+  );
 });
 
 final tripsProvider = FutureProvider.autoDispose<List<Trip>>((ref) async {
+  ref.keepAlive();
   return ref.watch(tripRepositoryProvider).listTrips();
 });
 
 final tripProvider = FutureProvider.autoDispose.family<Trip, String>((ref, tripId) async {
+  bindTripScopeRef(ref, tripId);
   return ref.watch(tripRepositoryProvider).getTrip(tripId);
 });
 
 final tripMembersProvider =
     FutureProvider.autoDispose.family<List<TripMember>, String>((ref, tripId) async {
+  bindTripScopeRef(ref, tripId);
   return ref.watch(tripRepositoryProvider).listMembers(tripId);
 });
 
 class TripRepository {
-  TripRepository(this._client);
+  TripRepository(this._client, this._urlCache);
 
   final SupabaseClient _client;
+  final SignedUrlCache _urlCache;
   final _uuid = const Uuid();
 
   Future<List<Trip>> listTrips() async {
@@ -146,9 +155,6 @@ class TripRepository {
   }
 
   Future<String?> createSignedUrl(String? path) async {
-    if (path == null || path.isEmpty) return null;
-    return _client.storage
-        .from(AppConstants.storageBucket)
-        .createSignedUrl(path, 60 * 60);
+    return _urlCache.getSignedUrl(path);
   }
 }

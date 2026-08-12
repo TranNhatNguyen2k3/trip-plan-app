@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/app_exception.dart';
 import '../../../core/utils/supabase_provider.dart';
+import '../../trips/data/trip_scope.dart';
 import '../domain/trip_statistics.dart';
 
 final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
@@ -11,6 +12,7 @@ final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
 
 final tripStatisticsProvider =
     FutureProvider.autoDispose.family<TripStatistics, String>((ref, tripId) async {
+  bindTripScopeRef(ref, tripId);
   return ref.watch(statisticsRepositoryProvider).getStatistics(tripId);
 });
 

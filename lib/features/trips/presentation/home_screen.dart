@@ -12,50 +12,11 @@ import '../../../core/widgets/app_error_state.dart';
 import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/app_loading.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../../core/storage/signed_url_service.dart';
 import '../../settlements/data/settlement_repository.dart';
 import '../data/trip_repository.dart';
 import '../domain/trip.dart';
 import 'trip_cover_fallback.dart';
-
-final _coverUrlProvider =
-    FutureProvider.autoDispose.family<String?, String?>((ref, path) {
-  return ref.watch(tripRepositoryProvider).createSignedUrl(path);
-});
-
-/// Aggregates the signed-in user's net balance across all trips.
-final homeBalanceSummaryProvider =
-    FutureProvider.autoDispose<({int owe, int receive})>((ref) async {
-  final userId = ref.watch(currentUserProvider)?.id;
-  if (userId == null) return (owe: 0, receive: 0);
-
-  final trips = await ref.watch(tripsProvider.future);
-  final repo = ref.watch(settlementRepositoryProvider);
-
-  final results = await Future.wait(trips.map((trip) async {
-    try {
-      final balances = await repo.getBalances(trip.id);
-      var owe = 0;
-      var receive = 0;
-      for (final b in balances) {
-        if (b.userId != userId) continue;
-        if (b.netBalance < 0) owe += -b.netBalance;
-        if (b.netBalance > 0) receive += b.netBalance;
-      }
-      return (owe: owe, receive: receive);
-    } catch (_) {
-      // Skip trips that fail balance fetch; home still renders.
-      return (owe: 0, receive: 0);
-    }
-  }));
-
-  var owe = 0;
-  var receive = 0;
-  for (final r in results) {
-    owe += r.owe;
-    receive += r.receive;
-  }
-  return (owe: owe, receive: receive);
-});
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -66,6 +27,7 @@ class HomeScreen extends ConsumerWidget {
     final profile = ref.watch(currentProfileProvider).asData?.value;
     final tripsAsync = ref.watch(tripsProvider);
     final balancesAsync = ref.watch(homeBalanceSummaryProvider);
+    ref.watch(homeTripCoverUrlsProvider);
     final greeting = greetingForNow();
     final name = profile?.displayName.split(' ').first ?? 'traveler';
 
@@ -257,7 +219,7 @@ class _HomeTripCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final coverAsync = ref.watch(_coverUrlProvider(trip.coverPhotoPath));
+    final coverAsync = ref.watch(signedStorageUrlProvider(trip.coverPhotoPath));
     final dateLabel = formatDateRange(trip.startDate, trip.endDate);
 
     return AppCard(
@@ -281,6 +243,7 @@ class _HomeTripCard extends ConsumerWidget {
                   }
                   return AppImage(
                     url: url,
+                    cacheKey: trip.coverPhotoPath,
                     height: 148,
                     width: double.infinity,
                     borderRadius: BorderRadius.zero,

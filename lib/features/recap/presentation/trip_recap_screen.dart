@@ -49,6 +49,17 @@ class _TripRecapScreenState extends ConsumerState<TripRecapScreen> {
   bool _paused = false;
   Timer? _timer;
   final _urls = <String, String>{};
+  int? _urlsLoadedForIndex;
+
+  void _syncSlideAssets(TripRecap recap) {
+    final slides = recap.slides;
+    final idx = _index.clamp(0, slides.length - 1);
+    if (_urlsLoadedForIndex != idx) {
+      _urlsLoadedForIndex = idx;
+      unawaited(_ensureUrls(slides[idx].photoPaths));
+      if (!_paused) _armTimer(slides.length);
+    }
+  }
 
   @override
   void dispose() {
@@ -121,10 +132,7 @@ class _TripRecapScreenState extends ConsumerState<TripRecapScreen> {
 
         final slides = recap.slides;
         final slide = slides[_index.clamp(0, slides.length - 1)];
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _ensureUrls(slide.photoPaths);
-          _armTimer(slides.length);
-        });
+        _syncSlideAssets(recap);
 
         return Scaffold(
           backgroundColor: Colors.black,
@@ -136,7 +144,7 @@ class _TripRecapScreenState extends ConsumerState<TripRecapScreen> {
               } else {
                 setState(() => _index = (_index + 1).clamp(0, slides.length - 1));
               }
-              _armTimer(slides.length);
+              _urlsLoadedForIndex = null;
             },
             onLongPressStart: (_) {
               setState(() => _paused = true);
@@ -149,7 +157,7 @@ class _TripRecapScreenState extends ConsumerState<TripRecapScreen> {
             onVerticalDragEnd: (d) {
               if ((d.primaryVelocity ?? 0) < -200) {
                 setState(() => _index = (_index + 1).clamp(0, slides.length - 1));
-                _armTimer(slides.length);
+                _urlsLoadedForIndex = null;
               }
             },
             child: Stack(
@@ -241,6 +249,9 @@ class _SlideView extends StatelessWidget {
               duration: const Duration(milliseconds: 450),
               child: AppImage(
                 url: photoUrl,
+                cacheKey: slide.photoPaths.isNotEmpty
+                    ? slide.photoPaths.first
+                    : null,
                 borderRadius: BorderRadius.zero,
                 memCacheWidth: 1200,
               ),

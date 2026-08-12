@@ -20,6 +20,10 @@ void configureSupabaseApiLogging({required bool enabled}) {
     final isSupabaseFamily = name.startsWith('supabase') || name == 'gotrue';
     if (!isSupabaseFamily) return;
     if (record.level == Level.CONFIG) return;
+    // Token refresh ticks — very noisy in debug.
+    if (record.level.value <= Level.FINER.value && name.contains('auth')) {
+      return;
+    }
 
     debugPrint(
       '[Supabase] ${record.level.name} $name: ${record.message}'

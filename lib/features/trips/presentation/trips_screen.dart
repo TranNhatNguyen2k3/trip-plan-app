@@ -9,14 +9,10 @@ import '../../../core/widgets/app_empty_state.dart';
 import '../../../core/widgets/app_error_state.dart';
 import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/app_loading.dart';
+import '../../../core/storage/signed_url_service.dart';
 import '../data/trip_repository.dart';
 import '../domain/trip.dart';
 import 'trip_cover_fallback.dart';
-
-final _tripCoverUrlProvider =
-    FutureProvider.autoDispose.family<String?, String?>((ref, path) {
-  return ref.watch(tripRepositoryProvider).createSignedUrl(path);
-});
 
 class TripsScreen extends ConsumerWidget {
   const TripsScreen({super.key});
@@ -87,7 +83,7 @@ class _TripCoverCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final coverAsync = ref.watch(_tripCoverUrlProvider(trip.coverPhotoPath));
+    final coverAsync = ref.watch(signedStorageUrlProvider(trip.coverPhotoPath));
     final dateLabel = formatDateRange(trip.startDate, trip.endDate);
 
     return Material(
@@ -119,8 +115,9 @@ class _TripCoverCard extends ConsumerWidget {
                           if (url == null || url.isEmpty) {
                             return const TripCoverFallback(height: 200);
                           }
-                          return AppImage(
+          return AppImage(
                             url: url,
+                            cacheKey: trip.coverPhotoPath,
                             height: 200,
                             width: double.infinity,
                             borderRadius: BorderRadius.zero,

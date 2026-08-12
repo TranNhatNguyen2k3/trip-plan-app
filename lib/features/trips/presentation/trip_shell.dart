@@ -8,6 +8,7 @@ import '../../../core/widgets/app_error_state.dart';
 import '../../../core/widgets/app_loading.dart';
 import '../data/trip_realtime.dart';
 import '../data/trip_repository.dart';
+import '../data/trip_scope.dart';
 
 class TripShell extends ConsumerStatefulWidget {
   const TripShell({
@@ -172,6 +173,7 @@ class _TripShellState extends ConsumerState<TripShell>
 
   @override
   Widget build(BuildContext context) {
+    bindTripScope(ref, widget.tripId);
     ref.watch(tripRealtimeProvider(widget.tripId));
     final tripAsync = ref.watch(tripProvider(widget.tripId));
     final location = GoRouterState.of(context).uri.path;

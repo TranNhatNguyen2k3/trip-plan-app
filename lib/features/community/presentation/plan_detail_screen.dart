@@ -15,9 +15,9 @@ import '../../../core/widgets/app_error_state.dart';
 import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/app_loading.dart';
 import '../../trips/presentation/trip_cover_fallback.dart';
+import '../../../core/storage/signed_url_service.dart';
 import '../data/community_repository.dart';
 import '../domain/public_trip_plan.dart';
-import 'plan_card.dart';
 
 class PlanDetailScreen extends ConsumerStatefulWidget {
   const PlanDetailScreen({super.key, required this.tripId});
@@ -152,7 +152,7 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
         ),
         data: (detail) {
           final plan = detail.plan;
-          final coverAsync = ref.watch(planPhotoUrlProvider(plan.coverImage));
+          final coverAsync = ref.watch(signedStorageUrlProvider(plan.coverImage));
           final byDay = _groupByDay(detail.itinerary);
 
           return CustomScrollView(
@@ -443,7 +443,7 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                             itemBuilder: (context, index) {
                               final path = detail.photoPaths[index];
                               final urlAsync =
-                                  ref.watch(planPhotoUrlProvider(path));
+                                  ref.watch(signedStorageUrlProvider(path));
                               return ClipRRect(
                                 borderRadius: BorderRadius.circular(
                                   AppSpacing.radiusSm,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../data/auth_repository.dart';
 
@@ -19,6 +18,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late final Animation<double> _fade;
   late final Animation<double> _scale;
 
+  static const _logoAsset = 'assets/branding/tripzy_logo.png';
+
   @override
   void initState() {
     super.initState();
@@ -27,7 +28,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       duration: const Duration(milliseconds: 700),
     );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _scale = Tween<double>(begin: 0.92, end: 1).animate(
+    _scale = Tween<double>(begin: 0.94, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
     _controller.forward();
@@ -50,55 +51,37 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final logoWidth = MediaQuery.sizeOf(context).width * 0.62;
+
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.background,
-              Color(0xFFE8F5F3),
-              AppColors.primaryLight,
-            ],
-            stops: [0.0, 0.55, 1.0],
-          ),
-        ),
+      backgroundColor: Colors.white,
+      body: SafeArea(
         child: FadeTransition(
           opacity: _fade,
           child: ScaleTransition(
             scale: _scale,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 88,
-                  height: 88,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
+                const Spacer(flex: 2),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
                   ),
-                  child: const Icon(
-                    Icons.flight_takeoff_rounded,
-                    size: 44,
-                    color: AppColors.primaryDark,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                Text(
-                  'TripMate',
-                  style: theme.textTheme.displayLarge?.copyWith(
-                    color: AppColors.primaryDark,
-                    letterSpacing: -0.5,
+                  child: Image.asset(
+                    _logoAsset,
+                    width: logoWidth.clamp(200, 320),
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                const Spacer(flex: 3),
                 Text(
                   'Track expenses. Save memories.',
-                  style: theme.textTheme.bodyMedium,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: const Color(0xFF64748B),
+                  ),
                 ),
+                const SizedBox(height: AppSpacing.xxl),
               ],
             ),
           ),

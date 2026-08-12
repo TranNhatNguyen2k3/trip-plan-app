@@ -66,7 +66,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             password: _passwordController.text,
           );
       if (!mounted) return;
-      context.go('/');
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = mapErrorToMessage(e));

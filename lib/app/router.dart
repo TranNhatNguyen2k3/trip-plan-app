@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/auth/data/auth_repository.dart';
 import '../features/auth/presentation/login_screen.dart';
@@ -154,101 +155,114 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/trips/:tripId',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (_, state) {
-          final tripId = state.pathParameters['tripId']!;
-          return TripShell(tripId: tripId, child: TripOverviewScreen(tripId: tripId));
-        },
         routes: [
-          GoRoute(
-            path: 'expenses',
-            builder: (_, state) {
+          ShellRoute(
+            builder: (context, state, child) {
               final tripId = state.pathParameters['tripId']!;
-              return TripShell(tripId: tripId, child: ExpensesScreen(tripId: tripId));
+              return TripShell(tripId: tripId, child: child);
             },
             routes: [
               GoRoute(
-                path: 'create',
-                builder: (_, state) => ExpenseFormScreen(
+                path: '',
+                builder: (_, state) => TripOverviewScreen(
                   tripId: state.pathParameters['tripId']!,
                 ),
               ),
               GoRoute(
-                path: ':expenseId',
-                builder: (_, state) => ExpenseDetailScreen(
+                path: 'expenses',
+                builder: (_, state) => ExpensesScreen(
                   tripId: state.pathParameters['tripId']!,
-                  expenseId: state.pathParameters['expenseId']!,
                 ),
                 routes: [
                   GoRoute(
-                    path: 'edit',
+                    path: 'create',
                     builder: (_, state) => ExpenseFormScreen(
                       tripId: state.pathParameters['tripId']!,
-                      expenseId: state.pathParameters['expenseId'],
                     ),
+                  ),
+                  GoRoute(
+                    path: ':expenseId',
+                    builder: (_, state) => ExpenseDetailScreen(
+                      tripId: state.pathParameters['tripId']!,
+                      expenseId: state.pathParameters['expenseId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        builder: (_, state) => ExpenseFormScreen(
+                          tripId: state.pathParameters['tripId']!,
+                          expenseId: state.pathParameters['expenseId'],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-          GoRoute(
-            path: 'journal',
-            builder: (_, state) {
-              final tripId = state.pathParameters['tripId']!;
-              return TripShell(tripId: tripId, child: JournalScreen(tripId: tripId));
-            },
-            routes: [
               GoRoute(
-                path: 'create',
-                builder: (_, state) => JournalFormScreen(
+                path: 'journal',
+                builder: (_, state) => JournalScreen(
                   tripId: state.pathParameters['tripId']!,
-                ),
-              ),
-              GoRoute(
-                path: ':entryId',
-                builder: (_, state) => JournalDetailScreen(
-                  tripId: state.pathParameters['tripId']!,
-                  entryId: state.pathParameters['entryId']!,
                 ),
                 routes: [
                   GoRoute(
-                    path: 'edit',
+                    path: 'create',
                     builder: (_, state) => JournalFormScreen(
                       tripId: state.pathParameters['tripId']!,
-                      entryId: state.pathParameters['entryId'],
                     ),
                   ),
                   GoRoute(
-                    path: 'photos',
-                    builder: (_, state) {
-                      final index = int.tryParse(state.uri.queryParameters['i'] ?? '0') ?? 0;
-                      return PhotoViewerScreen(
-                        tripId: state.pathParameters['tripId']!,
-                        entryId: state.pathParameters['entryId']!,
-                        initialIndex: index,
-                      );
-                    },
+                    path: ':entryId',
+                    builder: (_, state) => JournalDetailScreen(
+                      tripId: state.pathParameters['tripId']!,
+                      entryId: state.pathParameters['entryId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        builder: (_, state) => JournalFormScreen(
+                          tripId: state.pathParameters['tripId']!,
+                          entryId: state.pathParameters['entryId'],
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'photos',
+                        builder: (_, state) {
+                          final index =
+                              int.tryParse(state.uri.queryParameters['i'] ?? '0') ?? 0;
+                          return PhotoViewerScreen(
+                            tripId: state.pathParameters['tripId']!,
+                            entryId: state.pathParameters['entryId']!,
+                            initialIndex: index,
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
+              ),
+              GoRoute(
+                path: 'settlements',
+                builder: (_, state) => SettlementsScreen(
+                  tripId: state.pathParameters['tripId']!,
+                ),
+              ),
+              GoRoute(
+                path: 'map',
+                builder: (_, state) => TripMapScreen(
+                  tripId: state.pathParameters['tripId']!,
+                ),
+              ),
+              GoRoute(
+                path: 'statistics',
+                builder: (_, state) => StatisticsScreen(
+                  tripId: state.pathParameters['tripId']!,
+                ),
               ),
             ],
           ),
           GoRoute(
             path: 'members',
             builder: (_, state) => MembersScreen(tripId: state.pathParameters['tripId']!),
-          ),
-          GoRoute(
-            path: 'settlements',
-            builder: (_, state) {
-              final tripId = state.pathParameters['tripId']!;
-              return TripShell(tripId: tripId, child: SettlementsScreen(tripId: tripId));
-            },
-          ),
-          GoRoute(
-            path: 'map',
-            builder: (_, state) {
-              final tripId = state.pathParameters['tripId']!;
-              return TripShell(tripId: tripId, child: TripMapScreen(tripId: tripId));
-            },
           ),
           GoRoute(
             path: 'budget',
@@ -262,21 +276,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'book',
             builder: (_, state) => TripBookScreen(tripId: state.pathParameters['tripId']!),
           ),
-          GoRoute(
-            path: 'statistics',
-            builder: (_, state) {
-              final tripId = state.pathParameters['tripId']!;
-              return TripShell(tripId: tripId, child: StatisticsScreen(tripId: tripId));
-            },
-          ),
         ],
       ),
     ],
   );
 });
 
-/// Session helper for redirect without importing supabase in router redirects awkwardly.
-final supabaseSession = Provider((ref) {
+/// Session for redirect — uses live Supabase session after auth refresh.
+final supabaseSession = Provider<Session?>((ref) {
   ref.watch(authStateProvider);
-  return ref.watch(authRepositoryProvider).currentSession;
+  return Supabase.instance.client.auth.currentSession;
 });

@@ -8,6 +8,7 @@ class AppImage extends StatelessWidget {
   const AppImage({
     super.key,
     required this.url,
+    this.cacheKey,
     this.fit = BoxFit.cover,
     this.width,
     this.height,
@@ -17,6 +18,7 @@ class AppImage extends StatelessWidget {
   });
 
   final String? url;
+  final String? cacheKey;
   final BoxFit fit;
   final double? width;
   final double? height;
@@ -33,6 +35,7 @@ class AppImage extends StatelessWidget {
     } else {
       child = CachedNetworkImage(
         imageUrl: url!,
+        cacheKey: cacheKey,
         fit: fit,
         width: width,
         height: height,

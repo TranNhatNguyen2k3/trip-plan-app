@@ -10,14 +10,20 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/supabase_provider.dart';
+import '../../../core/storage/signed_url_service.dart';
+import '../../trips/data/trip_scope.dart';
 import '../domain/journal_entry.dart';
 
 final journalRepositoryProvider = Provider<JournalRepository>((ref) {
-  return JournalRepository(ref.watch(supabaseClientProvider));
+  return JournalRepository(
+    ref.watch(supabaseClientProvider),
+    ref.watch(signedUrlCacheProvider),
+  );
 });
 
 final journalEntriesProvider =
     FutureProvider.autoDispose.family<List<JournalEntry>, String>((ref, tripId) async {
+  bindTripScopeRef(ref, tripId);
   return ref.watch(journalRepositoryProvider).listEntries(tripId);
 });
 
@@ -28,6 +34,7 @@ final journalEntryProvider =
 
 final journalSummaryProvider =
     FutureProvider.autoDispose.family<JournalSummary, String>((ref, tripId) async {
+  bindTripScopeRef(ref, tripId);
   return ref.watch(journalRepositoryProvider).getSummary(tripId);
 });
 
@@ -46,9 +53,10 @@ class PhotoUploadItem {
 }
 
 class JournalRepository {
-  JournalRepository(this._client);
+  JournalRepository(this._client, this._urlCache);
 
   final SupabaseClient _client;
+  final SignedUrlCache _urlCache;
   final _uuid = const Uuid();
 
   Future<List<JournalEntry>> listEntries(String tripId, {int page = 0}) async {
@@ -237,19 +245,11 @@ class JournalRepository {
   }
 
   Future<String?> signedUrl(String? path) async {
-    if (path == null || path.isEmpty) return null;
-    return _client.storage
-        .from(AppConstants.storageBucket)
-        .createSignedUrl(path, 60 * 60);
+    return _urlCache.getSignedUrl(path);
   }
 
   Future<Map<String, String>> signedUrls(List<String> paths) async {
-    final map = <String, String>{};
-    for (final path in paths) {
-      final url = await signedUrl(path);
-      if (url != null) map[path] = url;
-    }
-    return map;
+    return _urlCache.signPaths(paths);
   }
 
   bool fileExists(String path) => File(path).existsSync();

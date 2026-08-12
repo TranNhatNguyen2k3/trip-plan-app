@@ -13,6 +13,7 @@ import '../../../core/widgets/app_error_state.dart';
 import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/app_loading.dart';
 import '../../../core/constants/feature_flags.dart';
+import '../../../core/storage/signed_url_service.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../budget/data/budget_repository.dart';
 import '../../budget/domain/trip_budget.dart';
@@ -25,16 +26,6 @@ import '../../settlements/data/settlement_repository.dart';
 import '../../statistics/data/statistics_repository.dart';
 import '../data/trip_repository.dart';
 import 'trip_cover_fallback.dart';
-
-final _overviewCoverUrlProvider =
-    FutureProvider.autoDispose.family<String?, String?>((ref, path) {
-  return ref.watch(tripRepositoryProvider).createSignedUrl(path);
-});
-
-final _memoryPhotoUrlProvider =
-    FutureProvider.autoDispose.family<String?, String>((ref, path) {
-  return ref.watch(journalRepositoryProvider).signedUrl(path);
-});
 
 class TripOverviewScreen extends ConsumerWidget {
   const TripOverviewScreen({super.key, required this.tripId});
@@ -57,7 +48,7 @@ class TripOverviewScreen extends ConsumerWidget {
         onRetry: () => ref.invalidate(tripProvider(tripId)),
       ),
       data: (trip) {
-        final coverAsync = ref.watch(_overviewCoverUrlProvider(trip.coverPhotoPath));
+        final coverAsync = ref.watch(signedStorageUrlProvider(trip.coverPhotoPath));
         final dateLabel = formatDateRange(trip.startDate, trip.endDate);
         final theme = Theme.of(context);
 
@@ -108,6 +99,7 @@ class TripOverviewScreen extends ConsumerWidget {
                         }
                         return AppImage(
                           url: url,
+                          cacheKey: trip.coverPhotoPath,
                           height: 220,
                           width: double.infinity,
                           borderRadius: BorderRadius.zero,
@@ -442,7 +434,7 @@ class _MemoryChip extends ConsumerWidget {
         entry.photos.isNotEmpty ? entry.photos.first.storagePath : null;
     final urlAsync = firstPhoto == null
         ? null
-        : ref.watch(_memoryPhotoUrlProvider(firstPhoto));
+        : ref.watch(signedStorageUrlProvider(firstPhoto));
 
     return InkWell(
       onTap: () => context.push('/trips/$tripId/journal/${entry.id}'),
@@ -477,6 +469,7 @@ class _MemoryChip extends ConsumerWidget {
                       ),
                       data: (url) => AppImage(
                         url: url,
+                        cacheKey: firstPhoto,
                         height: 72,
                         borderRadius: BorderRadius.zero,
                         memCacheWidth: 300,

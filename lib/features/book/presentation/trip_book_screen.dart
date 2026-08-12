@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,6 +32,7 @@ class _TripBookScreenState extends ConsumerState<TripBookScreen> {
   int _page = 0;
   final _urls = <String, String>{};
   final _controller = PageController();
+  Object? _urlsLoadedForBook;
 
   @override
   void dispose() {
@@ -155,7 +158,10 @@ class _TripBookScreenState extends ConsumerState<TripBookScreen> {
       privacy: _privacy,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadUrls(book));
+    if (_urlsLoadedForBook != book) {
+      _urlsLoadedForBook = book;
+      unawaited(_loadUrls(book));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -296,7 +302,7 @@ class _PhotosLayout extends StatelessWidget {
     Widget img(String path) {
       final url = urls[path];
       if (url == null) return const AppSkeleton(height: 180);
-      return AppImage(url: url, memCacheWidth: 900);
+      return AppImage(url: url, cacheKey: path, memCacheWidth: 900);
     }
 
     if (paths.length == 1) return img(paths.first);

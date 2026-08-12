@@ -20,7 +20,8 @@ import '../../trips/data/trip_repository.dart';
 import '../../trips/domain/trip.dart';
 import '../data/community_repository.dart';
 import '../domain/public_trip_plan.dart';
-import 'plan_card.dart';
+import '../../../core/storage/signed_url_service.dart';
+import 'plan_card.dart' show tripTypeLabel;
 
 class PublishPlanScreen extends ConsumerStatefulWidget {
   const PublishPlanScreen({super.key, required this.tripId});
@@ -170,12 +171,6 @@ class _PublishPlanScreenState extends ConsumerState<PublishPlanScreen> {
           onRetry: () => ref.invalidate(tripProvider(widget.tripId)),
         ),
         data: (trip) {
-          if (!_seeded) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _seedFromTrip(trip);
-            });
-          }
-
           final photos = journalAsync.asData?.value == null
               ? const <JournalPhoto>[]
               : _allPhotos(journalAsync.asData!.value);
@@ -300,7 +295,7 @@ class _PublishPlanScreenState extends ConsumerState<PublishPlanScreen> {
                       final selected =
                           _selectedPhotos.contains(photo.storagePath);
                       final urlAsync =
-                          ref.watch(planPhotoUrlProvider(photo.storagePath));
+                          ref.watch(signedStorageUrlProvider(photo.storagePath));
                       return InkWell(
                         onTap: () {
                           setState(() {
@@ -324,6 +319,7 @@ class _PublishPlanScreenState extends ConsumerState<PublishPlanScreen> {
                               ),
                               data: (url) => AppImage(
                                 url: url,
+                                cacheKey: photo.storagePath,
                                 borderRadius: BorderRadius.circular(
                                   AppSpacing.radiusSm,
                                 ),

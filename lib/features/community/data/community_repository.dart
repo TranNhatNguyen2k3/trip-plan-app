@@ -1,18 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
+import '../../../core/storage/signed_url_service.dart';
 import '../../../core/utils/supabase_provider.dart';
 import '../domain/public_trip_plan.dart';
 
 final communityRepositoryProvider = Provider<CommunityRepository>((ref) {
-  return CommunityRepository(ref.watch(supabaseClientProvider));
+  return CommunityRepository(
+    ref.watch(supabaseClientProvider),
+    ref.watch(signedUrlCacheProvider),
+  );
 });
 
 final publicPlansProvider = FutureProvider.autoDispose
     .family<List<PublicTripPlan>, ({String? destination, String? tripType, String sort})>(
   (ref, q) async {
+    ref.keepAlive();
     return ref.watch(communityRepositoryProvider).listPlans(
           destination: q.destination,
           tripType: q.tripType,
@@ -41,9 +45,10 @@ final creatorProfileProvider =
 });
 
 class CommunityRepository {
-  CommunityRepository(this._client);
+  CommunityRepository(this._client, this._urlCache);
 
   final SupabaseClient _client;
+  final SignedUrlCache _urlCache;
 
   List<PublicTripPlan> _parseList(dynamic result) {
     final list = result as List<dynamic>? ?? [];
@@ -171,9 +176,6 @@ class CommunityRepository {
   }
 
   Future<String?> signedPlanPhotoUrl(String? path) async {
-    if (path == null || path.isEmpty) return null;
-    return _client.storage
-        .from(AppConstants.storageBucket)
-        .createSignedUrl(path, 60 * 60);
+    return _urlCache.getSignedUrl(path);
   }
 }

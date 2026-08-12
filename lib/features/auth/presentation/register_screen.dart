@@ -47,7 +47,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             displayName: _nameController.text.trim(),
           );
       if (!mounted) return;
-      context.go('/');
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = mapErrorToMessage(e));

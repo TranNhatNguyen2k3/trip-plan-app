@@ -8,14 +8,9 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/app_loading.dart';
+import '../../../core/storage/signed_url_service.dart';
 import '../../trips/presentation/trip_cover_fallback.dart';
-import '../data/community_repository.dart';
 import '../domain/public_trip_plan.dart';
-
-final planPhotoUrlProvider =
-    FutureProvider.autoDispose.family<String?, String?>((ref, path) {
-  return ref.watch(communityRepositoryProvider).signedPlanPhotoUrl(path);
-});
 
 String tripTypeLabel(String type) {
   if (type.isEmpty) return type;
@@ -37,7 +32,7 @@ class PlanCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final coverAsync = ref.watch(planPhotoUrlProvider(plan.coverImage));
+    final coverAsync = ref.watch(signedStorageUrlProvider(plan.coverImage));
     final coverHeight = compact ? 140.0 : 180.0;
 
     return Material(
@@ -69,6 +64,7 @@ class PlanCard extends ConsumerWidget {
                         }
                         return AppImage(
                           url: url,
+                          cacheKey: plan.coverImage,
                           height: coverHeight,
                           width: double.infinity,
                           borderRadius: BorderRadius.zero,

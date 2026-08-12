@@ -9,6 +9,7 @@ import '../../../core/widgets/app_empty_state.dart';
 import '../../../core/widgets/app_error_state.dart';
 import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/app_loading.dart';
+import '../../../core/storage/signed_url_service.dart';
 import '../data/journal_repository.dart';
 import '../domain/journal_entry.dart';
 
@@ -168,7 +169,6 @@ class _JournalTimelineCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final repo = ref.watch(journalRepositoryProvider);
     final firstPhoto = entry.photos.isNotEmpty ? entry.photos.first : null;
 
     return AppCard(
@@ -178,20 +178,20 @@ class _JournalTimelineCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (firstPhoto != null)
-            FutureBuilder<String?>(
-              future: repo.signedUrl(firstPhoto.storagePath),
-              builder: (context, snapshot) {
-                return AppImage(
-                  url: snapshot.data,
-                  height: 180,
-                  width: double.infinity,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(AppSpacing.radiusMd),
-                  ),
-                  heroTag: 'journal-photo-${firstPhoto.id}',
-                  memCacheWidth: 800,
-                );
-              },
+            ref.watch(signedStorageUrlProvider(firstPhoto.storagePath)).when(
+              loading: () => const AppSkeleton(height: 180),
+              error: (_, _) => const AppSkeleton(height: 180),
+              data: (url) => AppImage(
+                url: url,
+                cacheKey: firstPhoto.storagePath,
+                height: 180,
+                width: double.infinity,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppSpacing.radiusMd),
+                ),
+                heroTag: 'journal-photo-${firstPhoto.id}',
+                memCacheWidth: 800,
+              ),
             )
           else
             Container(
