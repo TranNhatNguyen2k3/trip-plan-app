@@ -9,6 +9,11 @@ class Trip {
     required this.currency,
     this.coverPhotoPath,
     this.budgetAmount,
+    this.visibility = 'private',
+    this.tripType,
+    this.estimatedBudget,
+    this.publishedAt,
+    this.clonedFromTripId,
     required this.createdBy,
     required this.createdAt,
     required this.updatedAt,
@@ -23,9 +28,16 @@ class Trip {
   final String currency;
   final String? coverPhotoPath;
   final int? budgetAmount;
+  final String visibility;
+  final String? tripType;
+  final int? estimatedBudget;
+  final DateTime? publishedAt;
+  final String? clonedFromTripId;
   final String createdBy;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  bool get isPublic => visibility == 'public';
 
   factory Trip.fromJson(Map<String, dynamic> json) {
     DateTime? parseDate(dynamic v) {
@@ -43,6 +55,11 @@ class Trip {
       currency: json['currency'] as String? ?? 'VND',
       coverPhotoPath: json['cover_photo_path'] as String?,
       budgetAmount: (json['budget_amount'] as num?)?.toInt(),
+      visibility: json['visibility'] as String? ?? 'private',
+      tripType: json['trip_type'] as String?,
+      estimatedBudget: (json['estimated_budget'] as num?)?.toInt(),
+      publishedAt: parseDate(json['published_at']),
+      clonedFromTripId: json['cloned_from_trip_id'] as String?,
       createdBy: json['created_by'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -71,6 +88,10 @@ class Trip {
     String? coverPhotoPath,
     int? budgetAmount,
     bool clearBudget = false,
+    String? visibility,
+    String? tripType,
+    int? estimatedBudget,
+    String? clonedFromTripId,
   }) {
     return Trip(
       id: id,
@@ -82,6 +103,11 @@ class Trip {
       currency: currency ?? this.currency,
       coverPhotoPath: coverPhotoPath ?? this.coverPhotoPath,
       budgetAmount: clearBudget ? null : (budgetAmount ?? this.budgetAmount),
+      visibility: visibility ?? this.visibility,
+      tripType: tripType ?? this.tripType,
+      estimatedBudget: estimatedBudget ?? this.estimatedBudget,
+      publishedAt: publishedAt,
+      clonedFromTripId: clonedFromTripId ?? this.clonedFromTripId,
       createdBy: createdBy,
       createdAt: createdAt,
       updatedAt: updatedAt,

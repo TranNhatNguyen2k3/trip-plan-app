@@ -11,7 +11,7 @@ import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/app_loading.dart';
 import '../data/trip_repository.dart';
 import '../domain/trip.dart';
-import 'shell_scaffold.dart';
+import 'trip_cover_fallback.dart';
 
 final _tripCoverUrlProvider =
     FutureProvider.autoDispose.family<String?, String?>((ref, path) {

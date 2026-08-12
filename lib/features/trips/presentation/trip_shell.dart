@@ -117,6 +117,14 @@ class _TripShellState extends ConsumerState<TripShell>
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.public_outlined),
+                title: const Text('Publish Trip Plan'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  context.push('$base/publish');
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.movie_filter_outlined),
                 title: const Text('Trip Recap'),
                 onTap: () {

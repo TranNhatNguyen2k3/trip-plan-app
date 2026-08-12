@@ -150,6 +150,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(
+                        Icons.bookmark_outline,
+                        color: AppColors.primary,
+                      ),
+                      title: const Text('Saved plans'),
+                      subtitle: const Text('Community trip plans you saved'),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => context.push('/profile/saved'),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
                         Icons.settings_outlined,
                         color: AppColors.primary,
                       ),

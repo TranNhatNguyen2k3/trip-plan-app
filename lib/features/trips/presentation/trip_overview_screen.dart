@@ -24,7 +24,7 @@ import '../../journal/domain/journal_entry.dart';
 import '../../settlements/data/settlement_repository.dart';
 import '../../statistics/data/statistics_repository.dart';
 import '../data/trip_repository.dart';
-import 'shell_scaffold.dart';
+import 'trip_cover_fallback.dart';
 
 final _overviewCoverUrlProvider =
     FutureProvider.autoDispose.family<String?, String?>((ref, path) {
@@ -150,6 +150,26 @@ class TripOverviewScreen extends ConsumerWidget {
                     if (dateLabel.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.xs),
                       Text(dateLabel, style: theme.textTheme.bodyMedium),
+                    ],
+                    if (trip.clonedFromTripId != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Inspired by a community trip plan',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.primaryDark,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                    if (FeatureFlags.communityTripPlans && trip.isPublic) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Published to Explore',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                     const SizedBox(height: AppSpacing.xl),
                     _MoneySummary(

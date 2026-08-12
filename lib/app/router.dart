@@ -8,7 +8,14 @@ import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
 import '../features/auth/presentation/settings_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
+import '../features/community/presentation/creator_profile_screen.dart';
+import '../features/community/presentation/explore_screen.dart';
+import '../features/community/presentation/explore_search_screen.dart';
+import '../features/community/presentation/plan_detail_screen.dart';
+import '../features/community/presentation/publish_plan_screen.dart';
+import '../features/community/presentation/saved_plans_screen.dart';
 import '../features/book/presentation/trip_book_screen.dart';
+import '../core/constants/feature_flags.dart';
 import '../features/budget/presentation/budget_screen.dart';
 import '../features/expenses/presentation/expense_detail_screen.dart';
 import '../features/expenses/presentation/expense_form_screen.dart';
@@ -71,6 +78,37 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
           ]),
+          if (FeatureFlags.communityTripPlans)
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: '/explore',
+                builder: (_, _) => const ExploreScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'search',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (_, state) => ExploreSearchScreen(
+                      initialQuery: state.uri.queryParameters['q'] ??
+                          (state.extra is String ? state.extra as String : null),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'plans/:tripId',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (_, state) => PlanDetailScreen(
+                      tripId: state.pathParameters['tripId']!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'creators/:userId',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (_, state) => CreatorProfileScreen(
+                      creatorId: state.pathParameters['userId']!,
+                    ),
+                  ),
+                ],
+              ),
+            ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/trips',
@@ -85,7 +123,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
+            GoRoute(
+              path: '/profile',
+              builder: (_, _) => const ProfileScreen(),
+              routes: [
+                if (FeatureFlags.communityTripPlans)
+                  GoRoute(
+                    path: 'saved',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (_, _) => const SavedPlansScreen(),
+                  ),
+              ],
+            ),
           ]),
         ],
       ),
@@ -94,6 +143,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (_, _) => const SettingsScreen(),
       ),
+      if (FeatureFlags.communityTripPlans)
+        GoRoute(
+          path: '/trips/:tripId/publish',
+          parentNavigatorKey: _rootNavigatorKey,
+          builder: (_, state) => PublishPlanScreen(
+            tripId: state.pathParameters['tripId']!,
+          ),
+        ),
       GoRoute(
         path: '/trips/:tripId',
         parentNavigatorKey: _rootNavigatorKey,
