@@ -48,7 +48,7 @@ begin
   ), '[]'::jsonb)
   into v_by_category
   from (
-    select e.category, sum(e.amount):: as amount
+    select e.category, sum(e.amount)::bigint as amount
     from public.expenses e
     where e.trip_id = p_trip_id
     group by e.category
