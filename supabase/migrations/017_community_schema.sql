@@ -122,6 +122,7 @@ alter table public.trip_plan_saves enable row level security;
 alter table public.trip_plan_views enable row level security;
 
 -- Owners manage selected publish photos; anyone can read photos of public plans
+drop policy if exists "trip_plan_photos_select_public_or_member" on public.trip_plan_photos;
 create policy "trip_plan_photos_select_public_or_member"
   on public.trip_plan_photos for select to authenticated
   using (
@@ -132,11 +133,13 @@ create policy "trip_plan_photos_select_public_or_member"
     )
   );
 
+drop policy if exists "trip_plan_photos_manage_owner" on public.trip_plan_photos;
 create policy "trip_plan_photos_manage_owner"
   on public.trip_plan_photos for all to authenticated
   using (public.is_trip_owner(trip_id))
   with check (public.is_trip_owner(trip_id));
 
+drop policy if exists "trip_plan_likes_select" on public.trip_plan_likes;
 create policy "trip_plan_likes_select"
   on public.trip_plan_likes for select to authenticated
   using (
@@ -147,6 +150,7 @@ create policy "trip_plan_likes_select"
     )
   );
 
+drop policy if exists "trip_plan_likes_insert_own" on public.trip_plan_likes;
 create policy "trip_plan_likes_insert_own"
   on public.trip_plan_likes for insert to authenticated
   with check (
@@ -157,14 +161,17 @@ create policy "trip_plan_likes_insert_own"
     )
   );
 
+drop policy if exists "trip_plan_likes_delete_own" on public.trip_plan_likes;
 create policy "trip_plan_likes_delete_own"
   on public.trip_plan_likes for delete to authenticated
   using (user_id = auth.uid());
 
+drop policy if exists "trip_plan_saves_select_own" on public.trip_plan_saves;
 create policy "trip_plan_saves_select_own"
   on public.trip_plan_saves for select to authenticated
   using (user_id = auth.uid());
 
+drop policy if exists "trip_plan_saves_insert_own" on public.trip_plan_saves;
 create policy "trip_plan_saves_insert_own"
   on public.trip_plan_saves for insert to authenticated
   with check (
@@ -175,10 +182,12 @@ create policy "trip_plan_saves_insert_own"
     )
   );
 
+drop policy if exists "trip_plan_saves_delete_own" on public.trip_plan_saves;
 create policy "trip_plan_saves_delete_own"
   on public.trip_plan_saves for delete to authenticated
   using (user_id = auth.uid());
 
+drop policy if exists "trip_plan_views_insert_own" on public.trip_plan_views;
 create policy "trip_plan_views_insert_own"
   on public.trip_plan_views for insert to authenticated
   with check (user_id = auth.uid() or user_id is null);

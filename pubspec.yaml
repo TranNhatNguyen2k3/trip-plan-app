@@ -66,15 +66,17 @@ flutter_launcher_icons:
   image_path: assets/branding/tripzy_logo.png
   min_sdk_android: 21
   remove_alpha_ios: true
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: assets/branding/tripzy_logo.png
+  # Full logo on white — no adaptive foreground mask (avoids cropping).
 
 flutter_native_splash:
   color: "#FFFFFF"
   image: assets/branding/tripzy_logo.png
+  android_gravity: center
+  ios_content_mode: scaleAspectFit
   android_12:
     color: "#FFFFFF"
     image: assets/branding/tripzy_logo.png
+    icon_background_color: "#FFFFFF"
   ios: true
   android: true
   web: false

@@ -21,7 +21,7 @@ class TripCoverFallback extends StatelessWidget {
           colors: [
             AppColors.primary,
             AppColors.primaryDark,
-            Color(0xFF134E4A),
+            Color(0xFF004AAD),
           ],
         ),
       ),

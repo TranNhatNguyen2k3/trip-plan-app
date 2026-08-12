@@ -94,7 +94,7 @@ class _JoinTripScreenState extends ConsumerState<JoinTripScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFE8F5F3),
+              AppColors.primaryTint,
               AppColors.background,
             ],
           ),

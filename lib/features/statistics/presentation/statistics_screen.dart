@@ -22,7 +22,7 @@ class StatisticsScreen extends ConsumerWidget {
   static const _chartColors = [
     AppColors.primary,
     AppColors.travelAccent,
-    Color(0xFF2563EB),
+    Color(0xFF0EA5E9),
     Color(0xFFDB2777),
     Color(0xFF7C3AED),
     Color(0xFF0891B2),

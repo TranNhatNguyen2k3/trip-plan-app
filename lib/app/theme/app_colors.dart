@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
-/// Central color tokens for TripMate.
+/// Central color tokens for TripMate (aligned with Tripzy brand blue).
 class AppColors {
   AppColors._();
 
-  static const Color primary = Color(0xFF0D9488);
-  static const Color primaryDark = Color(0xFF0F766E);
-  static const Color primaryLight = Color(0xFF5EEAD4);
+  /// Brand blue — Tripzy logo (#007AFF).
+  static const Color primary = Color(0xFF007AFF);
+  static const Color primaryDark = Color(0xFF0056B3);
+  static const Color primaryLight = Color(0xFF4DA2FF);
+
+  /// Soft blue wash for auth / hero backgrounds.
+  static const Color primaryTint = Color(0xFFE8F4FF);
 
   static const Color background = Color(0xFFF7F5F2);
   static const Color surface = Color(0xFFFFFFFF);
